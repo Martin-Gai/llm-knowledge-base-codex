@@ -1,7 +1,6 @@
 ---
 name: kb-import
-description: Import an existing Obsidian vault into the knowledge base. Inspects each note and routes it intelligently — structured concept articles go to wiki/concepts/, raw research notes go to raw/notes/ for later compilation. Usage: /kb-import <vault-path>
-trigger: /kb-import
+description: Import an existing Obsidian vault into the knowledge base. Inspects each note and routes it intelligently: structured concept articles go to wiki/concepts/, raw research notes go to raw/notes/ for later compilation. Use when the user wants to migrate a non-KB vault.
 ---
 
 # KB Import
@@ -13,7 +12,7 @@ Import an existing Obsidian vault into the knowledge base. Each note is inspecte
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -21,7 +20,7 @@ Set this as `KB_PATH` for all subsequent steps.
 
 ### 2. Validate Source Vault
 
-The argument after `/kb-import` is the source vault path. Expand `~` if present.
+The argument after `kb-import` is the source vault path. Expand `~` if present.
 
 ```bash
 ls {VAULT_PATH}
@@ -36,7 +35,7 @@ And stop.
 If `.kb/manifest.json` exists inside the vault, print:
 ```
 This looks like a KB vault, not a plain Obsidian vault.
-Use /kb-merge-vault {VAULT_PATH} instead.
+Use `kb-merge-vault {VAULT_PATH}` instead.
 ```
 And stop.
 
@@ -154,12 +153,12 @@ Import complete from: {VAULT_PATH}
   → raw/notes/       {N} notes (ready to compile)
      Skipped:        {N} (already existed)
 
-Run /kb-compile to process the raw notes into the wiki.
+Run `kb-compile` to process the raw notes into the wiki.
 ```
 
 ### 10. Prompt for Compile
 
-Ask: `Run /kb-compile now to process the imported raw notes? [y/n]`
+Ask: `Run kb-compile now to process the imported raw notes? [y/n]`
 
-If yes, invoke `/kb-compile`.
+If yes, invoke `kb-compile`.
 If no, stop.

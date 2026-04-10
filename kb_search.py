@@ -22,9 +22,9 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 def load_config() -> Path:
-    config_path = Path.home() / ".claude" / "kb-config.json"
+    config_path = Path.home() / ".codex" / "kb-config.json"
     if not config_path.exists():
-        print(json.dumps({"error": "~/.claude/kb-config.json not found. Run setup.sh first."}))
+        print(json.dumps({"error": "~/.codex/kb-config.json not found. Run setup.sh first."}))
         sys.exit(1)
     with open(config_path) as f:
         cfg = json.load(f)
@@ -174,7 +174,7 @@ def build_index(kb_path: Path) -> dict:
     files = scan_wiki_files(kb_path)
 
     if not files:
-        print("No wiki files found. Run /kb-compile first.", file=sys.stderr)
+        print("No wiki files found. Run `kb-compile` first.", file=sys.stderr)
         return {"built_at": datetime.now(timezone.utc).isoformat(), "entries": []}
 
     # Load embedder (optional)

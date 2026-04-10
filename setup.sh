@@ -54,8 +54,9 @@ EOF
 fi
 
 # Write config
-CONFIG="$HOME/.claude/kb-config.json"
-mkdir -p "$HOME/.claude"
+CONFIG_DIR="$HOME/.codex"
+CONFIG="$CONFIG_DIR/kb-config.json"
+mkdir -p "$CONFIG_DIR"
 cat > "$CONFIG" << EOF
 {
   "kb_path": "$KB_PATH"
@@ -64,13 +65,13 @@ EOF
 echo "Wrote config to $CONFIG"
 
 # Install skills
-SKILLS_DIR="$HOME/.claude/skills"
+SKILLS_DIR="$HOME/.codex/skills"
 mkdir -p "$SKILLS_DIR"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-for skill_file in "$SCRIPT_DIR"/skills/kb-*.md; do
-  skill_name="$(basename "$skill_file" .md)"
+for skill_dir in "$SCRIPT_DIR"/.agents/skills/kb-*; do
+  skill_name="$(basename "$skill_dir")"
   mkdir -p "$SKILLS_DIR/$skill_name"
-  cp "$skill_file" "$SKILLS_DIR/$skill_name/SKILL.md"
+  cp "$skill_dir/SKILL.md" "$SKILLS_DIR/$skill_name/SKILL.md"
 done
 echo "Installed skills to $SKILLS_DIR"
 
@@ -81,7 +82,7 @@ echo "Installed kb_search.py to $KB_PATH"
 
 echo ""
 echo "Done! Open $KB_PATH in Obsidian."
-echo "Skills available: /kb-ingest, /kb-import, /kb-compile, /kb-ask, /kb-lint, /kb-output, /kb-reflect, /kb-merge, /kb-merge-vault"
+echo "Skills available: kb-ingest, kb-import, kb-compile, kb-ask, kb-lint, kb-output, kb-reflect, kb-merge, kb-merge-vault"
 echo "Search tool: python3 $KB_PATH/kb_search.py \"query\""
 echo ""
 echo "To install Python dependencies: pip install -r requirements.txt"

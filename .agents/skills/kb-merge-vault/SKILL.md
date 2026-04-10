@@ -1,19 +1,18 @@
 ---
 name: kb-merge-vault
-description: Merge a second KB vault into the current one. Copies non-conflicting content, auto-merges conflicting concept articles using LLM synthesis, merges manifests and index, and resets reflect state for a full re-synthesis. Usage: /kb-merge-vault <vault-path>
-trigger: /kb-merge-vault
+description: Merge a second KB vault into the current one. Copies non-conflicting content, auto-merges conflicting concept and source articles, merges manifests and index, and resets reflect state for a full re-synthesis. Use when the user wants to combine two KB vaults.
 ---
 
 # KB Merge Vault
 
-Merge a second KB vault into the current one. Handles conflicts by auto-merging concept and source articles using LLM synthesis. Resets reflect state so the next `/kb-reflect` discovers connections across the merged content.
+Merge a second KB vault into the current one. Handles conflicts by auto-merging concept and source articles using LLM synthesis. Resets reflect state so the next `kb-reflect` discovers connections across the merged content.
 
 ## Steps
 
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -21,7 +20,7 @@ Set this as `KB_PATH` (primary vault) for all subsequent steps.
 
 ### 2. Validate Source Vault
 
-The argument after `/kb-merge-vault` is the secondary vault path. Expand `~` if present.
+The argument after `kb-merge-vault` is the secondary vault path. Expand `~` if present.
 Set this as `SOURCE_PATH`.
 
 ```bash
@@ -31,7 +30,7 @@ ls {SOURCE_PATH}/.kb/manifest.json
 If the file does not exist, print:
 ```
 Error: {SOURCE_PATH} does not look like a KB vault (no .kb/manifest.json found).
-If this is a plain Obsidian vault, use /kb-import {SOURCE_PATH} instead.
+If this is a plain Obsidian vault, use `kb-import {SOURCE_PATH}` instead.
 ```
 And stop.
 
@@ -175,7 +174,7 @@ Write to `{KB_PATH}/.kb/reflect_state.json`:
 }
 ```
 
-This ensures the next `/kb-reflect` does a full scan across all merged content, discovering connections between the two vaults.
+This ensures the next `kb-reflect` does a full scan across all merged content, discovering connections between the two vaults.
 
 ---
 
@@ -195,12 +194,12 @@ Vault merge complete.
   Merged:  {merged} concept/source conflicts resolved
   Skipped: {skipped} raw duplicates
 
-reflect_state reset — run /kb-reflect to synthesize connections across merged content.
+reflect_state reset — run `kb-reflect` to synthesize connections across merged content.
 ```
 
 ### 14. Prompt for Reflect
 
-Ask: `Run /kb-reflect now to find connections across the merged vaults? [y/n]`
+Ask: `Run kb-reflect now to find connections across the merged vaults? [y/n]`
 
-If yes, invoke `/kb-reflect`.
+If yes, invoke `kb-reflect`.
 If no, stop.

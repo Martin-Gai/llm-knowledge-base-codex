@@ -1,7 +1,6 @@
 ---
 name: kb-ingest
-description: Ingest a URL, PDF, image path, or plain text note into your personal knowledge base raw/ directory. Registers the content in the manifest for later compilation. Usage: /kb-ingest <url|path|note text>
-trigger: /kb-ingest
+description: Ingest a URL, PDF, image path, or plain text note into your personal knowledge base raw/ directory. Registers the content in the manifest for later compilation. Use when the user wants to stage new material before compilation.
 ---
 
 # KB Ingest
@@ -14,7 +13,7 @@ Stage content into the knowledge base `raw/` directory. Does not compile or modi
 
 Run:
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path (run `echo ~` if needed).
@@ -31,7 +30,7 @@ Keep the parsed JSON in memory — you will update and write it back in Step 5.
 
 ### 3. Detect Input Type
 
-The argument passed after `/kb-ingest` is the source. Classify it:
+The argument passed after `kb-ingest` is the source. Classify it:
 
 | Condition | Type |
 |---|---|
@@ -101,7 +100,7 @@ Set `RAW_KEY` = `raw/pdfs/{slug}.md`
 
 #### Image
 
-1. Read the image file using the Read tool (Claude will display it visually).
+1. Read the image file using the Read tool. Codex can inspect the image visually.
 2. Write a detailed description of the image: what it shows, any text visible, diagrams, charts, or figures explained in words.
 3. Generate a `slug` from the filename: strip extension, lowercase, replace spaces with `-`.
 4. Get the original file extension (e.g. `png`).

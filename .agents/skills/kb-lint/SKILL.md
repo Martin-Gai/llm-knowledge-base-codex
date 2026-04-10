@@ -1,7 +1,6 @@
 ---
 name: kb-lint
 description: Run health checks on your knowledge base wiki. Finds thin articles, missing concepts, broken wikilinks, duplicate concepts, and suggests new article candidates. Prints a terminal summary and saves a full report to outputs/.
-trigger: /kb-lint
 ---
 
 # KB Lint
@@ -13,7 +12,7 @@ Run 5 sequential health checks on the wiki using index-first navigation. Prints 
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.

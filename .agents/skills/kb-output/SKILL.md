@@ -1,7 +1,6 @@
 ---
 name: kb-output
-description: Render knowledge base content as a Marp slideshow or matplotlib chart. Accepts a question (researches the wiki) or an existing outputs/ file path. Usage: /kb-output --slides <question|file> or /kb-output --chart <question|file>
-trigger: /kb-output
+description: Render knowledge base content as a Marp slideshow or matplotlib chart. Accepts a question or an existing outputs/ file path. Use when the user wants a slide deck or chart generated from knowledge-base content.
 ---
 
 # KB Output
@@ -13,7 +12,7 @@ Render wiki content as a Marp slideshow or matplotlib chart. Supports two format
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -21,12 +20,12 @@ Set this as `KB_PATH` for all subsequent steps.
 
 ### 2. Parse Arguments
 
-The invocation format is: `/kb-output --{format} {source}`
+The invocation format is: `kb-output --{format} {source}`
 
 **Extract format flag:**
 - `--slides` → set `FORMAT` = `slides`
 - `--chart` → set `FORMAT` = `chart`
-- If neither flag is present, print: `Usage: /kb-output --slides <question|file> or /kb-output --chart <question|file>` and stop.
+- If neither flag is present, print: `Usage: kb-output --slides <question|file> or kb-output --chart <question|file>` and stop.
 
 **Extract source:**
 - Everything after the flag is the `SOURCE` argument.
@@ -158,7 +157,7 @@ Example structure for a bar chart:
 ```python
 import matplotlib.pyplot as plt
 
-labels = ['GPT-4', 'Claude 3', 'Gemini']
+labels = ['GPT-4', 'GPT-5', 'Gemini']
 scores = [85.4, 86.1, 84.2]
 
 fig, ax = plt.subplots(figsize=(8, 5))

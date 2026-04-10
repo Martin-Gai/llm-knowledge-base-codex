@@ -1,7 +1,6 @@
 ---
 name: kb-ask
-description: Ask a question against your personal knowledge base wiki. Reads the index to navigate relevant articles, synthesizes a grounded answer with citations, and saves the answer to outputs/. Usage: /kb-ask <your question>
-trigger: /kb-ask
+description: Ask a question against your personal knowledge base wiki. Reads the index to navigate relevant articles, synthesizes a grounded answer with citations, and saves the answer to outputs/. Use when the user wants to query the knowledge base with a natural-language question.
 ---
 
 # KB Ask
@@ -14,7 +13,7 @@ Answer a question using the knowledge base wiki. Uses `wiki/index.md` as the nav
 
 Run:
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.

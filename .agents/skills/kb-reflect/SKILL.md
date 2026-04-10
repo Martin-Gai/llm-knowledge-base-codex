@@ -1,7 +1,6 @@
 ---
 name: kb-reflect
-description: Scan the wiki for cross-cutting connections, implicit relationships, contradictions, and gaps. Writes new synthesis articles and a reflection report. Triggered automatically after /kb-compile, or run manually.
-trigger: /kb-reflect
+description: Scan the wiki for cross-cutting connections, implicit relationships, contradictions, and gaps. Writes new synthesis articles and a reflection report. Use after kb-compile or when the user explicitly wants synthesis across the wiki.
 ---
 
 # KB Reflect
@@ -13,7 +12,7 @@ Discover non-obvious connections across the wiki and write synthesis articles. U
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -77,7 +76,7 @@ proposed_title: human-readable title
 
 If fewer than 2 strong candidates are found, print:
 ```
-Nothing strong enough to synthesize yet. Run /kb-reflect again after ingesting more content.
+Nothing strong enough to synthesize yet. Run `kb-reflect` again after ingesting more content.
 ```
 And stop.
 

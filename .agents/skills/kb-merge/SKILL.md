@@ -1,7 +1,6 @@
 ---
 name: kb-merge
-description: Merge duplicate or related concept articles. Accepts an explicit pair (/kb-merge slug-a slug-b) or runs auto-detection from wiki duplicates. Synthesizes a clean merged article, updates all backlinks, and archives the absorbed article.
-trigger: /kb-merge
+description: Merge duplicate or related concept articles. Accepts an explicit pair such as kb-merge slug-a slug-b or runs auto-detection from wiki duplicates. Synthesizes a clean merged article, updates backlinks, and archives the absorbed article.
 ---
 
 # KB Merge
@@ -13,7 +12,7 @@ Merge two concept articles into one. Synthesizes content, updates all backlinks 
 ### 1. Read Config
 
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -21,7 +20,7 @@ Set this as `KB_PATH` for all subsequent steps.
 
 ### 2. Determine Mode
 
-**Explicit mode:** If two slugs are provided after `/kb-merge` (e.g. `/kb-merge attention attention-mechanism`):
+**Explicit mode:** If two slugs are provided after `kb-merge` (e.g. `kb-merge attention attention-mechanism`):
 - Set `PAIRS` = `[("attention-mechanism", "attention")]`
   - The article with more entries in its `## Sources` section is `slug-keep`; the other is `slug-absorb`
   - If tied, keep the first slug provided

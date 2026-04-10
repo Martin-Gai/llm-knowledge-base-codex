@@ -1,7 +1,6 @@
 ---
 name: kb-compile
-description: Compile all uncompiled raw/ content into the wiki. Writes source summaries, creates/updates concept articles with Obsidian backlinks, and updates the index. Run after /kb-ingest to process new content.
-trigger: /kb-compile
+description: Compile all uncompiled raw/ content into the wiki. Writes source summaries, creates or updates concept articles with Obsidian backlinks, and updates the index. Use after kb-ingest to process new content.
 ---
 
 # KB Compile
@@ -14,7 +13,7 @@ Batch process all uncompiled raw files into the wiki. Incremental — only proce
 
 Run:
 ```bash
-cat ~/.claude/kb-config.json
+cat ~/.codex/kb-config.json
 ```
 
 Extract `kb_path`. Expand `~` to the actual home directory path.
@@ -180,7 +179,7 @@ Where N is the count of files just compiled.
 
 ### 8. Run Reflect
 
-Invoke the `/kb-reflect` skill to discover connections across newly compiled content.
+Invoke the `kb-reflect` skill to discover connections across newly compiled content.
 
 ### 9. Print Summary
 

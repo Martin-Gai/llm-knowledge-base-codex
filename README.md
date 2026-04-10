@@ -1,6 +1,6 @@
-# LLM Knowledge Base
+# LLM Knowledge Base for Codex
 
-A self-managed personal knowledge base powered by [Claude Code](https://claude.ai/code). You feed it raw content — URLs, PDFs, images, notes — and the LLM handles all organization: tagging, summarizing, linking concepts, synthesizing connections, and answering questions. **You never edit the wiki directly.**
+A self-managed personal knowledge base for Codex. You feed it raw content such as URLs, PDFs, images, and notes; the LLM organizes that material into a wiki-like Obsidian vault by summarizing sources, creating concept pages, linking ideas, and answering questions. You own `raw/`. The agent owns `wiki/` and `outputs/`.
 
 Uses **Obsidian** as the viewer and frontend.
 
@@ -10,50 +10,50 @@ Uses **Obsidian** as the viewer and frontend.
 
 ```mermaid
 flowchart TD
-    subgraph input["📥 Your Content"]
+    subgraph input["Your Content"]
         A1[URLs]
         A2[PDFs]
         A3[Images]
         A4[Notes]
     end
 
-    subgraph existing["📂 Existing Vaults"]
+    subgraph existing["Existing Vaults"]
         B1[Obsidian vault]
         B2[Another KB vault]
     end
 
-    ingest["/kb-ingest"]
-    import_["/kb-import"]
-    mergevault["/kb-merge-vault"]
+    ingest["kb-ingest"]
+    import_["kb-import"]
+    mergevault["kb-merge-vault"]
     raw["raw/\nstaged content"]
-    compile["/kb-compile"]
+    compile["kb-compile"]
 
-    subgraph wiki["🧠 wiki/  —  LLM-managed"]
+    subgraph wiki["wiki/"]
         index["index.md\nnavigation layer"]
         concepts["concepts/\none article per concept"]
         sources["sources/\none summary per source"]
         archive["archive/\nabsorbed articles"]
     end
 
-    reflect["/kb-reflect\n✦ auto-runs after compile"]
+    reflect["kb-reflect\nauto-runs after compile"]
     search["kb_search.py\nkeyword + semantic"]
 
-    ask["/kb-ask"]
-    lint["/kb-lint"]
-    merge["/kb-merge"]
-    output["/kb-output"]
+    ask["kb-ask"]
+    lint["kb-lint"]
+    merge["kb-merge"]
+    output["kb-output"]
 
-    subgraph out["📤 outputs/"]
+    subgraph out["outputs/"]
         answers["Q&A answers"]
-        reports["lint & reflect reports"]
-        rendered["slides & charts"]
+        reports["lint and reflect reports"]
+        rendered["slides and charts"]
     end
 
     input --> ingest --> raw --> compile --> wiki
     B1 --> import_ --> raw & concepts
     B2 --> mergevault --> wiki
     compile -. auto .-> reflect
-    reflect -- synthesis articles --> concepts
+    reflect --> concepts
     wiki --> search
     search -. used by .-> ask
     index --> ask --> answers
@@ -63,7 +63,24 @@ flowchart TD
     wiki --> output --> rendered
 ```
 
-The wiki grows smarter with every compile cycle. Q&A answers compound on each other. The LLM owns `wiki/` and `outputs/` — you own `raw/`.
+---
+
+## Codex Compatibility
+
+This fork is packaged for Codex instead of Claude Code.
+
+- Repo-local skills live in [`.agents/skills`](/Users/yulin/Desktop/obsidian_folder/llm-knowledge-base-codex/.agents/skills).
+- `setup.sh` installs them into `~/.codex/skills/`.
+- Runtime config is stored at `~/.codex/kb-config.json`.
+- Skill names are `kb-ingest`, `kb-compile`, `kb-ask`, and so on.
+
+To invoke a skill in Codex, mention it by name in your request, for example:
+
+```text
+Use kb-ingest on https://arxiv.org/abs/1706.03762
+Use $kb-compile
+Use kb-ask: what is the attention mechanism?
+```
 
 ---
 
@@ -71,13 +88,13 @@ The wiki grows smarter with every compile cycle. Q&A answers compound on each ot
 
 | Requirement | Notes |
 |---|---|
-| [Claude Code](https://claude.ai/code) | Required — all skills run inside Claude Code |
-| Claude subscription | A paid Anthropic plan (Pro or above) |
-| [Obsidian](https://obsidian.md) | Free — used as the wiki viewer |
-| Python 3.8+ | Required for the search tool |
-| Git | Required — the KB directory is a git repo |
+| Codex | Required to use the skills |
+| [Obsidian](https://obsidian.md) | Used as the vault viewer |
+| Python 3.8+ | Required for `kb_search.py` |
+| Git | Required because the KB directory is a git repo |
 
-**Optional Python packages:**
+Optional Python packages:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -87,196 +104,159 @@ pip install -r requirements.txt
 ## Quickstart
 
 ```bash
-# 1. Clone this repo
-git clone https://github.com/louiswang524/llm-knowledge-base.git
-cd llm-knowledge-base
+# 1. Clone your fork
+git clone <your-fork-url> llm-knowledge-base-codex
+cd llm-knowledge-base-codex
 
-# 2. Run setup (pass your preferred KB location)
+# 2. Initialize a KB vault and install Codex skills
 bash setup.sh ~/knowledge-base
 
-# 3. Open ~/knowledge-base as a vault in Obsidian
+# 3. Open ~/knowledge-base as an Obsidian vault
 
-# 4. Open Claude Code in any directory and start using the skills
+# 4. Open Codex and use the kb-* skills
 ```
 
 `setup.sh` will:
-- Create the KB directory structure
-- Initialize it as a git repo
-- Write `~/.claude/kb-config.json` pointing to your KB
-- Copy all 9 skills into `~/.claude/skills/` so Claude Code can find them
-- Copy `kb_search.py` into your KB directory
 
-> **Note:** Skills are installed globally into `~/.claude/skills/`. You can use them from any Claude Code session, not just from the repo directory.
+- Create the KB directory structure.
+- Initialize it as a git repo if needed.
+- Write `~/.codex/kb-config.json` pointing to your KB.
+- Install all repo skills from [`.agents/skills`](/Users/yulin/Desktop/obsidian_folder/llm-knowledge-base-codex/.agents/skills) into `~/.codex/skills/`.
+- Copy [`kb_search.py`](/Users/yulin/Desktop/obsidian_folder/llm-knowledge-base-codex/kb_search.py) into the KB directory.
 
 ---
 
 ## Skills
 
-### `/kb-import <vault-path>`
+### `kb-ingest <source>`
 
-Import an existing Obsidian vault into the knowledge base. Inspects each note and routes it intelligently:
+Stage content into `raw/` without compiling it yet.
 
-```
-/kb-import ~/my-old-obsidian-vault
-```
-
-- **Concept articles** (structured, reference-style notes) → `wiki/concepts/` directly, preserving existing `[[wikilinks]]`
-- **Raw research notes** (fleeting notes, source references, unstructured content) → `raw/notes/` for compilation
-
-After import, prompts to run `/kb-compile` to process the raw notes.
-
----
-
-### `/kb-merge-vault <vault-path>`
-
-Merge a second KB vault into the current one.
-
-```
-/kb-merge-vault ~/knowledge-base-work
+```text
+kb-ingest https://arxiv.org/abs/1706.03762
+kb-ingest /path/to/paper.pdf
+kb-ingest /path/to/diagram.png
+kb-ingest Self-attention allows each token to attend to all other tokens regardless of distance
 ```
 
-- Non-conflicting files are copied as-is
-- Conflicting concept and source articles are auto-merged using LLM synthesis (same logic as `/kb-merge`)
-- `manifest.json` and `wiki/index.md` are merged and deduplicated
-- `reflect_state.json` is reset so the next `/kb-reflect` discovers connections across both vaults
-- Prompts to run `/kb-reflect` after merging
+Routes inputs to:
 
----
+- URLs -> `raw/web/`
+- PDFs -> `raw/pdfs/`
+- Images -> `raw/images/`
+- Everything else -> `raw/notes/`
 
-### `/kb-ingest <source>`
+### `kb-compile`
 
-Stage content into `raw/`. Does not compile yet.
+Compile all uncompiled `raw/` content into the wiki.
 
-```
-/kb-ingest https://arxiv.org/abs/1706.03762
-/kb-ingest /path/to/paper.pdf
-/kb-ingest /path/to/diagram.png
-/kb-ingest Self-attention allows each token to attend to all other tokens regardless of distance
+```text
+kb-compile
 ```
 
-| Input | Where it goes |
-|---|---|
-| URL (`http://` or `https://`) | `raw/web/` |
-| `.pdf` file path | `raw/pdfs/` |
-| Image path (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`) | `raw/images/` |
-| Anything else | `raw/notes/` |
+For each uncompiled source, the agent:
 
-Each file gets YAML frontmatter (`source`, `ingested_at`, `type`, `status: uncompiled`) and is registered in `.kb/manifest.json`.
+1. Writes a source summary in `wiki/sources/`.
+2. Creates or updates concept pages in `wiki/concepts/`.
+3. Updates `wiki/index.md`.
+4. Marks the manifest entry as compiled.
+5. Rebuilds the search index.
+6. Runs `kb-reflect`.
+7. Commits the changes.
 
----
+### `kb-ask <question>`
 
-### `/kb-compile`
+Answer a question using the wiki as grounding.
 
-Process all uncompiled `raw/` content into the wiki. Run after ingesting new content.
-
-```
-/kb-compile
-```
-
-For each uncompiled file, the LLM:
-1. Writes a source summary to `wiki/sources/<slug>.md`
-2. Creates or updates concept articles in `wiki/concepts/<concept>.md` with Obsidian `[[backlinks]]`
-3. Appends entries to `wiki/index.md`
-4. Updates `.kb/manifest.json` → `status: compiled`
-5. Rebuilds the search index
-6. Runs `/kb-reflect` automatically
-7. Commits to git
-
-Incremental — only processes new content. Safe to re-run.
-
----
-
-### `/kb-ask <question>`
-
-Ask a question against the wiki.
-
-```
-/kb-ask what is the attention mechanism?
-/kb-ask how does RLHF relate to transformers?
-/kb-ask summarize what we know about scaling laws
+```text
+kb-ask what is the attention mechanism?
+kb-ask how does RLHF relate to transformers?
+kb-ask summarize what we know about scaling laws
 ```
 
-The LLM reads `wiki/index.md` first (never loads the full wiki), selects 3–5 relevant articles, synthesizes a grounded answer with `[[wiki-link]]` citations, and saves it to `outputs/`. Answers are indexed back into `wiki/index.md` so future queries compound on past ones.
+The answer is saved to `outputs/` and indexed back into `wiki/index.md`.
 
----
+### `kb-reflect`
 
-### `/kb-reflect`
+Find cross-cutting themes, gaps, contradictions, and synthesis opportunities across the wiki.
 
-Discover non-obvious connections across the wiki and write synthesis articles. **Runs automatically after every `/kb-compile`.** Can also be run manually.
-
-```
-/kb-reflect
+```text
+kb-reflect
 ```
 
-Two-stage process:
-1. **Discovery** — reads `wiki/index.md` only, identifies 3–5 strongest connection candidates (cross-cutting themes, implicit relationships, contradictions, gaps)
-2. **Synthesis** — deep-reads relevant articles per candidate, writes a new `type: synthesis` article to `wiki/concepts/` if evidence is strong
+Writes synthesis pages into `wiki/concepts/` and a report into `outputs/`.
 
-Output: synthesis articles + `outputs/YYYY-MM-DD-kb-reflect-report.md` summarizing what was found and suggesting follow-up ingestion.
+### `kb-import <vault-path>`
 
----
+Import a plain Obsidian vault into the KB.
 
-### `/kb-merge <slug-a> <slug-b>` or `/kb-merge`
-
-Merge duplicate or related concept articles.
-
-```
-# Explicit pair
-/kb-merge attention attention-mechanism
-
-# Auto-detect duplicates and confirm interactively
-/kb-merge
+```text
+kb-import ~/my-old-obsidian-vault
 ```
 
-For each merge: LLM synthesizes both articles into one clean merged article, all `[[backlinks]]` in `wiki/` and `outputs/` are updated, and the absorbed article is archived to `wiki/archive/` with a redirect note. One git commit per pair.
+- Structured reference notes -> `wiki/concepts/`
+- Raw or partial notes -> `raw/notes/`
 
----
+### `kb-merge-vault <vault-path>`
 
-### `/kb-lint`
+Merge another KB vault into the current one.
+
+```text
+kb-merge-vault ~/knowledge-base-work
+```
+
+- Copies non-conflicting files.
+- Synthesizes conflicting concept and source pages.
+- Merges manifests and indexes.
+- Resets reflect state for a full follow-up synthesis pass.
+
+### `kb-merge [slug-a slug-b]`
+
+Merge duplicate or overlapping concept pages.
+
+```text
+kb-merge attention attention-mechanism
+kb-merge
+```
+
+Explicit mode merges the provided pair. Auto mode scans for likely duplicates and asks for confirmation.
+
+### `kb-lint`
 
 Run health checks on the wiki.
 
-```
-/kb-lint
+```text
+kb-lint
 ```
 
-Checks:
-- **Thin articles** — concept articles with < 3 sentences
-- **Missing concepts** — `[[concepts/X]]` links with no corresponding article
-- **Broken wikilinks** — links pointing to non-existent files
-- **Duplicate concepts** — near-duplicate concept slugs (feed these into `/kb-merge`)
-- **New article suggestions** — wiki gaps + optional web search for missing details
+Checks for:
 
-Prints a terminal summary and saves a full report to `outputs/YYYY-MM-DD-kb-lint-report.md`.
+- Thin concept pages
+- Missing concepts
+- Broken wikilinks
+- Duplicate concepts
+- New article suggestions
+
+### `kb-output --slides <question|file>` or `kb-output --chart <question|file>`
+
+Render wiki content as a Marp slideshow or a matplotlib chart.
+
+```text
+kb-output --slides what is the transformer architecture?
+kb-output --chart compare attention mechanisms across papers
+kb-output --slides outputs/2026-04-05-what-is-attention.md
+```
+
+Requires `matplotlib` and `networkx` for charts.
 
 ---
 
-### `/kb-output --slides <question|file>` or `/kb-output --chart <question|file>`
+## Search Tool
 
-Render wiki content as a Marp slideshow or matplotlib chart.
-
-```
-# From a question (researches the wiki first)
-/kb-output --slides what is the transformer architecture?
-/kb-output --chart compare attention mechanisms across papers
-
-# From an existing output file
-/kb-output --slides outputs/2026-04-05-what-is-attention.md
-```
-
-- Slides → `outputs/YYYY-MM-DD-<slug>-slides.md` (view with the [Marp plugin](https://github.com/marp-team/marp) in Obsidian)
-- Charts → `outputs/YYYY-MM-DD-<slug>-chart.png`
-
-Requires: `pip install matplotlib networkx`
-
----
-
-### Search Tool (`kb_search.py`)
-
-Fast keyword + semantic search over the wiki. Installed into your KB directory by `setup.sh`. Claude uses this automatically during large queries; you can also run it directly.
+[`kb_search.py`](/Users/yulin/Desktop/obsidian_folder/llm-knowledge-base-codex/kb_search.py) provides fast keyword search with optional semantic fallback.
 
 ```bash
-# Rebuild index (automatic after /kb-compile)
+# Rebuild index
 python3 ~/knowledge-base/kb_search.py --rebuild
 
 # Search
@@ -284,94 +264,83 @@ python3 ~/knowledge-base/kb_search.py "attention mechanism"
 python3 ~/knowledge-base/kb_search.py "how do LLM agents work" --top 10
 ```
 
-Output is JSON. Keyword search runs first; falls back to semantic search (sentence-transformers) if keyword confidence is low.
+Semantic fallback uses `sentence-transformers` if installed:
 
-Requires: `pip install sentence-transformers` for semantic fallback (recommended).
+```bash
+pip install sentence-transformers
+```
 
 ---
 
 ## Directory Structure
 
-```
+```text
 ~/knowledge-base/
-├── raw/                       # staged source content (you feed this)
-│   ├── web/                  # web articles as .md
-│   ├── pdfs/                 # PDFs + extracted text sidecars
-│   ├── images/               # images + description sidecars
-│   └── notes/                # freeform text notes
-├── wiki/                      # LLM-compiled knowledge (LLM owns this)
-│   ├── index.md              # master index — one-line summary per article
-│   ├── concepts/             # one .md per concept, with [[backlinks]]
-│   ├── sources/              # one .md per raw source
-│   └── archive/              # absorbed articles after /kb-merge
-├── outputs/                   # Q&A answers, reports, slides, charts
-├── kb_search.py               # search CLI tool
+├── raw/
+│   ├── web/
+│   ├── pdfs/
+│   ├── images/
+│   └── notes/
+├── wiki/
+│   ├── index.md
+│   ├── concepts/
+│   ├── sources/
+│   └── archive/
+├── outputs/
+├── kb_search.py
 └── .kb/
-    ├── manifest.json          # compilation state per raw file
-    └── reflect_state.json     # last reflect timestamp + synthesized articles
+    ├── manifest.json
+    └── reflect_state.json
+```
+
+Repo structure:
+
+```text
+llm-knowledge-base-codex/
+├── .agents/
+│   └── skills/
+│       └── kb-*/SKILL.md
+├── kb_search.py
+├── setup.sh
+└── requirements.txt
 ```
 
 ---
 
 ## Typical Workflow
 
+```text
+kb-ingest https://lilianweng.github.io/posts/2023-06-23-agent/
+kb-ingest https://arxiv.org/abs/2005.14165
+kb-ingest My intuition: RLHF works because human preferences act as a soft constraint on the policy
+
+kb-compile
+
+kb-ask what are the key components of an LLM agent?
+kb-ask how does RLHF relate to chain-of-thought?
+
+kb-lint
+kb-merge
 ```
-# --- Starting fresh ---
 
-# Ingest sources one by one
-/kb-ingest https://lilianweng.github.io/posts/2023-06-23-agent/
-/kb-ingest https://arxiv.org/abs/2005.14165
-/kb-ingest My intuition: RLHF works because human preferences act as a soft constraint on the policy
+For migrations:
 
-# Compile — also triggers /kb-reflect automatically
-/kb-compile
-
-# Ask questions
-/kb-ask what are the key components of an LLM agent?
-/kb-ask how does RLHF relate to chain-of-thought?
-
-# Periodically run health checks and merge duplicates
-/kb-lint
-/kb-merge
-
-# --- Migrating from an existing Obsidian vault ---
-
-# Smart import — LLM routes each note to wiki/concepts/ or raw/notes/
-/kb-import ~/my-old-obsidian-vault
-
-# --- Combining two KB vaults ---
-
-# Merge a work KB into your personal KB
-/kb-merge-vault ~/knowledge-base-work
+```text
+kb-import ~/my-old-obsidian-vault
+kb-merge-vault ~/knowledge-base-work
 ```
 
 ---
 
-## What Claude Code Skills Are
+## How Skills Are Packaged
 
-Claude Code skills are plain markdown files that tell Claude how to behave when you type a trigger command (e.g. `/kb-ingest`). They live in `~/.claude/skills/` and are automatically available in every Claude Code session after installation. This repo ships 9 skills — `setup.sh` installs them all.
+Each skill is a folder containing a `SKILL.md` file under [`.agents/skills`](/Users/yulin/Desktop/obsidian_folder/llm-knowledge-base-codex/.agents/skills). `setup.sh` copies those folders into `~/.codex/skills/`, which matches Codex's home-local skill layout on this machine.
 
----
+If you add or update a skill:
 
-## Obsidian Tips
-
-- Pin `wiki/index.md` as your home/dashboard note
-- Use **Graph View** to visualize concept backlinks
-- Use the **Backlinks panel** to see all sources that mention a concept
-- Install the **[Marp](https://github.com/marp-team/marp)** plugin to preview `/kb-output --slides` results
-
----
-
-## Contributing
-
-Contributions welcome. To add or improve a skill:
-
-1. Fork the repo
-2. Edit or create a skill `.md` file in `skills/` (follow the existing format — frontmatter with `name`, `description`, `trigger`, then step-by-step instructions)
-3. Test it by running `bash setup.sh` and invoking the skill in Claude Code
-4. Open a PR with a description of what changed and why
-
-Bug reports and feature requests: open an issue.
+1. Edit or create `SKILL.md` under `.agents/skills/<skill-name>/`.
+2. Re-run `bash setup.sh` to reinstall it into `~/.codex/skills/`.
+3. Test it by invoking the skill from Codex.
 
 ---
 
