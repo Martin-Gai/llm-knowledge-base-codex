@@ -73,10 +73,14 @@ Set `RAW_KEY` = `raw/web/{slug}.md`
 
 #### PDF
 
-1. Read the PDF file using the Read tool (pass the full file path).
-2. Extract all text content, preserving section headings and paragraph breaks.
-3. Generate a `slug` from the filename: strip `.pdf`, lowercase, replace spaces with `-`.
-4. Write extracted text to `{KB_PATH}/raw/pdfs/{slug}.md` with this exact format:
+1. Extract text with `pdftotext`:
+```bash
+pdftotext -layout "{original path}" -
+```
+2. If `pdftotext` is unavailable or extraction fails, fall back to the Read tool (pass the full file path) and extract as much readable text as possible.
+3. Preserve section headings and paragraph breaks in the extracted text.
+4. Generate a `slug` from the filename: strip `.pdf`, lowercase, replace spaces with `-`.
+5. Write extracted text to `{KB_PATH}/raw/pdfs/{slug}.md` with this exact format:
 
 ```
 ---
@@ -89,7 +93,7 @@ status: uncompiled
 {extracted text}
 ```
 
-5. Copy the original PDF file:
+6. Copy the original PDF file:
 ```bash
 cp "{original path}" "{KB_PATH}/raw/pdfs/{slug}.pdf"
 ```
